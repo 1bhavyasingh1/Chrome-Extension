@@ -1,0 +1,243 @@
+PS D:\editor compiler files etc\Dev\python-summarizer> pip install transformers
+
+
+
+
+
+
+C:\Users\lenovo>py -m flask --version
+
+
+
+
+
+
+
+
+D:\editor compiler files etc\Dev\python-summarizer> pip install youtube-transcript-api
+
+
+
+
+
+
+
+
+
+@app.get('/summary')
+In our case we need a get request
+
+
+
+
+
+
+
+
+
+def summary_api():
+Defining summary API
+
+
+
+
+
+
+
+
+
+url = request.args.get('url', '')
+We import "request" from flask
+Using this we are passing an argument called 'url' and that will have the url of the yt video
+"www.google.com/books?title=python"
+title=python are the args
+
+
+
+
+
+
+
+
+
+
+video_id = url.split('=')[1]
+transcript api uses the video id to return a transcript because every youtube video's id is unique
+here we extract the video id
+url.split('=')[1] this returns a list of strings and the index [1] is the id that we want
+
+
+
+
+
+
+
+
+
+
+
+
+summary = get_summary(get_transcript(video_id))
+    return summary, 200
+we pass the video_id in the get_transcipt and the we pass that into get_summary and this summary is what we return to teh chrome extension
+
+
+
+
+
+
+
+
+
+
+
+transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
+This returns subparts of the API(video)
+transcript = ' '.join([d['text'] for d in transcript_list])
+and then we join all those transcripts 
+and then we return transcript which is further passed in get_summary
+
+
+
+
+
+
+
+
+
+The transformers summarisation model had a limitation
+it could only provide summary of text that had less than 1000 characters
+otherwise it will show an error so for i in range(0, (len(transcript)//1000)+1):
+
+
+
+
+
+
+
+
+transcript[i*1000:(i+1)*1000]
+This is a feature in python called string slicing
+
+
+
+
+
+
+
+
+
+
+
+manifest.json
+is required by chrome for privacy purpose
+
+
+
+
+
+
+
+
+popup.html
+<button id="summarise" type="button">Summarise</button>
+the button has been given id summarise
+
+
+
+
+
+
+
+
+
+popup.js
+const btn = document.getElementById("summarise");
+The id that is present here comes from <button id="summarise" type="button">Summarise</button>
+
+
+
+
+
+
+
+
+
+
+
+ btn.disabled = true;
+ You can only click once before it finishes summarizing
+ btn.innerHTML = "Summarising...";
+ changes the text of the button from summarize to summarizing
+
+
+
+
+
+
+
+
+
+ chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
+        var url = tabs[0].url;
+From the active tab(i.e. the youtube tab) we are extracting the url using tabs[0], tabs is the list of all the tabs opened and tab[0] is the current tab
+
+
+
+
+
+
+
+
+
+
+
+
+var xhr = new XMLHttpRequest();
+        xhr.open("GET", "http://127.0.0.1:5000/summary?url=" + url, true);
+XMLHttpRequest(); is a javascript class to make http request from the server "127.0.0.1:5000"
+var url we are attaching using + url 
+"url=" is the "url = request.args.get('url', '')" in the app.py
+xhr.open, open is the function to start a new request    
+
+
+
+
+
+
+
+
+
+
+var text = xhr.responseText;
+The server sends a text back that is the response text so we save that to a variable text
+
+
+
+
+
+
+
+
+
+
+
+the way in which acceses the button here
+const btn = document.getElementById("summarise");
+is the same way access paragraph p 
+const p = document.getElementById("output");
+paragraph p is <p id="output"></p> from popup.html
+
+
+
+
+
+
+
+
+
+
+
+btn.disabled = false;
+btn.innerHTML = "Summarise";
+we reset the button using this 
